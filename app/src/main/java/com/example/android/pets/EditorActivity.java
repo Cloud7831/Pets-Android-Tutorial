@@ -15,6 +15,8 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -26,9 +28,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
+import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -47,6 +51,9 @@ public class EditorActivity extends AppCompatActivity {
     /** EditText field to enter the pet's gender */
     private Spinner mGenderSpinner;
 
+    /** dbHelper for getting a readable or writable database */
+    private PetDbHelper dbHelper;
+
     /**
      * Gender of the pet. The possible values are:
      * 0 for unknown gender, 1 for male, 2 for female.
@@ -63,6 +70,8 @@ public class EditorActivity extends AppCompatActivity {
         mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
         mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
+
+        dbHelper = new PetDbHelper(this);
 
         setupSpinner();
     }
@@ -120,8 +129,13 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Do nothing for now
+                // Save the pet data to the database.
+                insertPet();
+
+                // Exit the EditorActivity and go back to the CatalogActivity
+                finish();
                 return true;
+
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
                 // Do nothing for now
@@ -133,5 +147,24 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void insertPet(){
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(PetEntry.PET_NAME,       mNameEditText.getText().toString().trim());
+        values.put(PetEntry.PET_BREED,      mBreedEditText.getText().toString().trim());
+        values.put(PetEntry.PET_GENDER,     mGender);
+        values.put(PetEntry.PET_WEIGHT,     Integer.parseInt(mWeightEditText.getText().toString().trim()));
+
+        long newRowID = db.insert(PetEntry.TABLE_NAME, null, values);
+
+        if(newRowID == -1){
+            Toast.makeText(this, "Error with saving pet data.", Toast.LENGTH_SHORT).show();
+        }
+        else{
+            Toast.makeText(this, "Pet saved with row id: " + newRowID, Toast.LENGTH_SHORT).show();
+        }
     }
 }

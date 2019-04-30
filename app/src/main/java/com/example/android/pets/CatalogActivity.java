@@ -93,6 +93,12 @@ public class CatalogActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onStart(){
+        super.onStart();
+        displayDatabaseInfo();
+    }
+
     private void insertData(){
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
@@ -102,6 +108,6 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.PET_WEIGHT, 7);
 
-        db.insert(PetEntry.TABLE_NAME, null, values);
+        long newRowID = db.insert(PetEntry.TABLE_NAME, null, values);
     }
 }
