@@ -53,14 +53,33 @@ public class CatalogActivity extends AppCompatActivity {
         // Create and/or open a database to read from it
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
+
+        String[] projection = {
+                PetEntry._ID,
+                PetEntry.PET_NAME,
+                PetEntry.PET_BREED,
+                PetEntry.PET_GENDER,
+                PetEntry.PET_WEIGHT
+        };
+
+        Cursor cursor = db.query(PetEntry.TABLE_NAME, projection, null, null, null, null, null);
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            //displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+
+            displayView.setText("");
+            while(cursor.moveToNext()){
+
+                int currentID = cursor.getInt(cursor.getColumnIndex(PetEntry._ID));
+                String currentName = cursor.getString(cursor.getColumnIndex(PetEntry.PET_NAME));
+                String currentBreed = cursor.getString(cursor.getColumnIndex(PetEntry.PET_BREED));
+                int currentGender = cursor.getInt(cursor.getColumnIndex(PetEntry.PET_GENDER));
+                int currentWeight = cursor.getInt(cursor.getColumnIndex(PetEntry.PET_WEIGHT));
+                displayView.append(("\n" + currentID + " - " + currentName + " - " + currentBreed + " - " + currentGender + " - " + currentWeight));
+
+            }
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
