@@ -7,6 +7,10 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
+
 import com.example.android.pets.data.PetContract.PetEntry;
 
 public class PetProvider extends ContentProvider {
@@ -77,13 +81,40 @@ public class PetProvider extends ContentProvider {
     }
 
     @Override
-    public String getType(Uri uri){
-        return null;
+    public Uri insert(Uri uri, ContentValues contentValues) {
+        final int match = matcher.match(uri);
+        switch (match) {
+            case PETS:
+
+                if(sanityCheck(contentValues)){
+                    return insertPet(uri, contentValues);
+                }
+                else{
+                    throw new IllegalArgumentException("Insertion values not accepted");
+                }
+
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
     }
 
-    @Override
-    public Uri insert(Uri uri, ContentValues contentValues){
-        return null;
+    /**
+     * Insert a pet into the database with the given content values. Return the new content URI
+     * for that specific row in the database.
+     */
+    private Uri insertPet(Uri uri, ContentValues values) {
+
+        SQLiteDatabase database = db.getWritableDatabase();
+
+        long id = database.insert(PetEntry.TABLE_NAME, null, values);
+
+        if (id==1){
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+        // Once we know the ID of the new row in the table,
+        // return the new URI with the ID appended to the end of it
+        return ContentUris.withAppendedId(uri, id);
     }
 
     @Override
@@ -92,8 +123,91 @@ public class PetProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs){
-        return 0;
+    public int update(Uri uri, ContentValues contentValues, String selection,
+                      String[] selectionArgs) {
+        final int match = matcher.match(uri);
+        if(contentValues.size() == 0){
+            // No reason to try to update if there's nothing to update.
+            return 0;
+        }
+        switch (match) {
+            case PETS:
+                return updatePet(uri, contentValues, selection, selectionArgs);
+            case PET_ID:
+                // For the PET_ID code, extract out the ID from the URI,
+                // so we know which row to update. Selection will be "_id=?" and selection
+                // arguments will be a String array containing the actual ID.
+                selection = PetEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                return updatePet(uri, contentValues, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
     }
 
+    /**
+     * Update pets in the database with the given content values. Apply the changes to the rows
+     * specified in the selection and selection arguments (which could be 0 or 1 or more pets).
+     * Return the number of rows that were successfully updated.
+     */
+    private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+
+        // TODO: Update the selected pets in the pets database table with the given ContentValues
+
+        // TODO: Return the number of rows that were affected
+
+        updateSanityCheck(values);
+
+        SQLiteDatabase database = db.getWritableDatabase();
+
+        int rowsAltered = database.update(PetEntry.TABLE_NAME, values, selection, selectionArgs);
+        return rowsAltered;
+    }
+
+    @Override
+    public String getType(Uri uri) {
+        return null;
+    }
+
+    public boolean sanityCheck(ContentValues values){
+
+        if(values.getAsString(PetEntry.PET_NAME) == null){
+            throw new IllegalArgumentException("Pet requires a name.");
+        }
+
+        Integer gender = values.getAsInteger(PetEntry.PET_GENDER);
+        if(gender == null || !PetEntry.isValidGender(gender)){
+            throw new IllegalArgumentException("Pet gender is not one of the accepted values.");
+        }
+
+        Integer weight = values.getAsInteger(PetEntry.PET_WEIGHT);
+        if(weight != null && weight < 0){
+            throw new IllegalArgumentException("Pet weight can't be negative.");
+        }
+
+        return true;
+    }
+
+    public boolean updateSanityCheck(ContentValues values){
+
+        if(values.containsKey(PetEntry.PET_WEIGHT)){
+            Integer weight = values.getAsInteger(PetEntry.PET_WEIGHT);
+            if(weight != null && weight < 0){
+                throw new IllegalArgumentException("Pet weight can't be negative.");
+            }
+        }
+        if(values.containsKey(PetEntry.PET_GENDER)){
+            Integer gender = values.getAsInteger(PetEntry.PET_GENDER);
+            if(gender == null || !PetEntry.isValidGender(gender)){
+                throw new IllegalArgumentException("Pet gender is not one of the accepted values.");
+            }
+        }
+        if(values.containsKey(PetEntry.PET_NAME)){
+            if(values.getAsString(PetEntry.PET_NAME) == null){
+                throw new IllegalArgumentException("Pet requires a name.");
+            }
+        }
+
+        return true;
+    }
 }
