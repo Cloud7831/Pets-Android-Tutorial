@@ -1,7 +1,10 @@
 package com.example.android.pets;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -21,9 +24,11 @@ import com.example.android.pets.data.PetDbHelper;
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private PetDbHelper dbHelper;
+    private static final int PET_LOADER = 0;
+    PetCursorAdapter cursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,36 +45,27 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        dbHelper = new PetDbHelper(this);
-        displayDatabaseInfo();
+        //dbHelper = new PetDbHelper(this);
+
+        ListView petListView = (ListView) findViewById(R.id.list);
+        View emptyView = findViewById(R.id.empty_view);
+        petListView.setEmptyView(emptyView);
+
+        cursorAdapter = new PetCursorAdapter(this, null);
+        petListView.setAdapter(cursorAdapter);
+
+
+        // Initialize the Cursor Loader
+        getLoaderManager().initLoader(PET_LOADER, null, this);
+
+
+
     }
 
     /**
      * Temporary helper method to display information in the onscreen TextView about the state of
      * the pets database.
      */
-    private void displayDatabaseInfo() {
-        String[] projection = {
-                PetEntry._ID,
-                PetEntry.PET_NAME,
-                PetEntry.PET_BREED,
-                PetEntry.PET_GENDER,
-                PetEntry.PET_WEIGHT
-        };
-
-        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null);
-
-        ListView petListView = (ListView) findViewById(R.id.list);
-
-        // Set the emptyView incase there's no data in the cursor to display.
-        View emptyView = findViewById(R.id.empty_view);
-        petListView.setEmptyView(emptyView);
-
-
-        PetCursorAdapter adapter = new PetCursorAdapter(this, cursor);
-
-        petListView.setAdapter(adapter);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -86,7 +82,6 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertData();
-                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
@@ -99,7 +94,6 @@ public class CatalogActivity extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        displayDatabaseInfo();
     }
 
     private void insertData(){
@@ -110,5 +104,30 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.PET_WEIGHT, 7);
 
         Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String[] projection = {
+                PetEntry._ID,
+                PetEntry.PET_NAME,
+                PetEntry.PET_BREED };
+
+        return new CursorLoader(this,   // Parent activity context
+                PetEntry.CONTENT_URI,           // Provider content URI to query
+                projection,                     // Columns to include in the resulting Cursor
+                null,                  // No selection clause
+                null,               // No selection args
+                null);                 // Default sort order
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        cursorAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        cursorAdapter.swapCursor(null);
     }
 }
