@@ -1,6 +1,7 @@
 package com.example.android.pets;
 
 import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -54,6 +56,19 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         cursorAdapter = new PetCursorAdapter(this, null);
         petListView.setAdapter(cursorAdapter);
 
+
+        // Setup item onclick listener
+        petListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+
+                Uri currentPetUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI, id);
+                intent.setData(currentPetUri);
+
+                startActivity(intent);
+            }
+        });
 
         // Initialize the Cursor Loader
         getLoaderManager().initLoader(PET_LOADER, null, this);
