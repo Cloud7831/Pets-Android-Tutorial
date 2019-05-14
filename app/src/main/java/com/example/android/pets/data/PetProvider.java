@@ -7,8 +7,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.android.pets.data.PetContract.PetEntry;
@@ -91,14 +90,8 @@ public class PetProvider extends ContentProvider {
         final int match = matcher.match(uri);
         switch (match) {
             case PETS:
-
-                if(sanityCheck(contentValues)){
-                    return insertPet(uri, contentValues);
-                }
-                else{
-                    throw new IllegalArgumentException("Insertion values not accepted");
-                }
-
+                sanityCheck(contentValues);
+                return insertPet(uri, contentValues);
             default:
                 throw new IllegalArgumentException("Insertion is not supported for " + uri);
         }
@@ -224,7 +217,7 @@ public class PetProvider extends ContentProvider {
 
     public boolean sanityCheck(ContentValues values){
 
-        if(values.getAsString(PetEntry.PET_NAME) == null){
+        if(TextUtils.isEmpty(values.getAsString(PetEntry.PET_NAME))){
             throw new IllegalArgumentException("Pet requires a name.");
         }
 
@@ -256,7 +249,7 @@ public class PetProvider extends ContentProvider {
             }
         }
         if(values.containsKey(PetEntry.PET_NAME)){
-            if(values.getAsString(PetEntry.PET_NAME) == null){
+            if(TextUtils.isEmpty(values.getAsString(PetEntry.PET_NAME))){
                 throw new IllegalArgumentException("Pet requires a name.");
             }
         }

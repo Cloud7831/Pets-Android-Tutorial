@@ -158,10 +158,11 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
                 // Save the pet data to the database.
-                savePet();
+                if(savePet()){
+                    finish();
+                }
 
                 // Exit the EditorActivity and go back to the CatalogActivity
-                finish();
                 return true;
 
             // Respond to a click on the "Delete" menu option
@@ -177,13 +178,29 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         return super.onOptionsItemSelected(item);
     }
 
-    private void savePet(){
+    private boolean savePet(){
 
         ContentValues values = new ContentValues();
+
+        String nameString = mNameEditText.getText().toString().trim();
+        String weightString = mWeightEditText.getText().toString().trim();
+
+        if(!TextUtils.isEmpty(weightString)){
+            values.put(PetEntry.PET_WEIGHT,     Integer.parseInt(weightString));
+        }
+        else{
+            // Default value for weight is 0.
+            values.put(PetEntry.PET_WEIGHT,     0);
+        }
+
+        if(TextUtils.isEmpty(nameString)){
+            Toast.makeText(this, "You cannot save a pet without a name.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
         values.put(PetEntry.PET_NAME,       mNameEditText.getText().toString().trim());
         values.put(PetEntry.PET_BREED,      mBreedEditText.getText().toString().trim());
         values.put(PetEntry.PET_GENDER,     mGender);
-        values.put(PetEntry.PET_WEIGHT,     Integer.parseInt(mWeightEditText.getText().toString().trim()));
 
         if(editMode){
             // Edit the details of a pet in the database
@@ -209,6 +226,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             }
         }
 
+        return true;
     }
 
     @Override
