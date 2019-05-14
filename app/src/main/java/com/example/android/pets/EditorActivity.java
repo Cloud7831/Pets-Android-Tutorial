@@ -61,6 +61,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private Uri currentPetUri;
 
+    private boolean editMode; // True if we're in edit mode, false if we're in add mode.
+
     /** dbHelper for getting a readable or writable database */
     private PetDbHelper dbHelper;
 
@@ -74,8 +76,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
-        getLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
-
 
         Intent intent = getIntent();
         currentPetUri = intent.getData();
@@ -83,10 +83,13 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         if (currentPetUri == null){
             // This is a new pet, so change the app bar to say "Add a Pet".
             setTitle(getString(R.string.editor_activity_title_new_pet));
+            editMode = false;
         }
         else{
             // This is an existing pet, so change the app bar to say "Edit Pet".
             setTitle("Edit Pet");
+            editMode = true;
+            getSupportLoaderManager().initLoader(EXISTING_PET_LOADER, null, this);
         }
 
 
@@ -155,7 +158,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
                 // Save the pet data to the database.
-                insertPet();
+                savePet();
 
                 // Exit the EditorActivity and go back to the CatalogActivity
                 finish();
@@ -174,7 +177,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         return super.onOptionsItemSelected(item);
     }
 
-    private void insertPet(){
+    private void savePet(){
 
         ContentValues values = new ContentValues();
         values.put(PetEntry.PET_NAME,       mNameEditText.getText().toString().trim());
@@ -182,14 +185,30 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(PetEntry.PET_GENDER,     mGender);
         values.put(PetEntry.PET_WEIGHT,     Integer.parseInt(mWeightEditText.getText().toString().trim()));
 
-        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+        if(editMode){
+            // Edit the details of a pet in the database
+            int rowsAffected = getContentResolver().update(currentPetUri, values, null, null);
 
-        if(uri == null){
-            Toast.makeText(this, "Error with saving pet data.", Toast.LENGTH_SHORT).show();
+            if(rowsAffected == 0){
+                Toast.makeText(this, "Update pet failed", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                Toast.makeText(this, "Update Pet successful", Toast.LENGTH_SHORT).show();
+            }
         }
-        else{
-            Toast.makeText(this, "Pet saved successfully.", Toast.LENGTH_SHORT).show();
+        else if(editMode == false){
+            // Add the pet to the database
+
+            Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+
+            if(uri == null){
+                Toast.makeText(this, "Error with saving pet data.", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                Toast.makeText(this, "Pet saved successfully.", Toast.LENGTH_SHORT).show();
+            }
         }
+
     }
 
     @Override
@@ -241,6 +260,5 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-
     }
 }
