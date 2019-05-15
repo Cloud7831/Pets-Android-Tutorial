@@ -2,6 +2,7 @@ package com.example.android.pets;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,7 +63,16 @@ public class PetCursorAdapter extends CursorAdapter {
         int breedColumnIndex = cursor.getColumnIndex(PetContract.PetEntry.PET_BREED);
 
         nameTextView.setText(cursor.getString(nameColumnIndex));
-        summaryTextView.setText(cursor.getString(breedColumnIndex));
+
+        String breedStr = cursor.getString(breedColumnIndex);
+        if(TextUtils.isEmpty(breedStr)){
+            // This is just a UI change. Don't want to add Unknown breed to the database!
+            summaryTextView.setText("Unknown breed");
+        }
+        else{
+            // If the pet has a breed defined in the database, then set it.
+            summaryTextView.setText(breedStr);
+        }
 
 
     }

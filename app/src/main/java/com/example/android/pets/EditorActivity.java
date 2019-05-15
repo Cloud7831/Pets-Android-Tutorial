@@ -181,7 +181,30 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
-                // Do nothing for now
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("Are you sure you want to delete this pet?");
+                builder.setNegativeButton("No take me back",
+                        new DialogInterface.OnClickListener(){
+                            public void onClick(DialogInterface dialog, int id){
+                                // User clicked the "Keep editing" button, so dismiss the dialog and continue editing
+                                if(dialog != null){
+                                    dialog.dismiss();
+                                }
+                            }
+                        });
+                builder.setPositiveButton("Delete",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                deletePet();
+                                finish();
+                            }
+                        });
+
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
@@ -366,5 +389,11 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             menuItem.setVisible(false);
         }
         return true;
+    }
+
+    private void deletePet(){
+        getContentResolver().delete(currentPetUri, null, null);
+
+        Toast.makeText(this, "The pet has been deleted from the database.", Toast.LENGTH_SHORT).show();
     }
 }

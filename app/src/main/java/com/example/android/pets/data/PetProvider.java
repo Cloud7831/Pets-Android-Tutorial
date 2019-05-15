@@ -122,9 +122,6 @@ public class PetProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Get writeable database
-        SQLiteDatabase database = db.getWritableDatabase();
-
         final int match = matcher.match(uri);
         switch (match) {
             case PETS:

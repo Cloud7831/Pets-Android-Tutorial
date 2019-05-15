@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -19,19 +18,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
-import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private PetDbHelper dbHelper;
     private static final int PET_LOADER = 0;
     PetCursorAdapter cursorAdapter;
 
@@ -49,8 +44,6 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                 startActivity(intent);
             }
         });
-
-        //dbHelper = new PetDbHelper(this);
 
         ListView petListView = (ListView) findViewById(R.id.list);
         View emptyView = findViewById(R.id.empty_view);
@@ -103,11 +96,9 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                //TODO: make a check that the user actually wants to delete all the data.
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("Are you sure you want to delete everything?");
-                builder.setPositiveButton("No take me back",
+                builder.setNegativeButton("No take me back",
                         new DialogInterface.OnClickListener(){
                             public void onClick(DialogInterface dialog, int id){
                                 // User clicked the "Keep editing" button, so dismiss the dialog and continue editing
@@ -116,7 +107,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                                 }
                             }
                         });
-                builder.setNegativeButton("Discard",
+                builder.setPositiveButton("Discard",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
@@ -144,7 +135,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         values.put(PetEntry.PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.PET_WEIGHT, 7);
 
-        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+        getContentResolver().insert(PetEntry.CONTENT_URI, values);
     }
 
     private void deleteAllData(){
