@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
@@ -100,7 +101,10 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                // Do nothing for now
+                //TODO: make a check that the user actually wants to delete all the data.
+                
+                deleteAllData();
+
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -119,6 +123,13 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         values.put(PetEntry.PET_WEIGHT, 7);
 
         Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+    }
+
+    private void deleteAllData(){
+        // Null selection because we want to delete everything.
+        int petsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null, null);
+
+        Toast.makeText(this, petsDeleted + " pets have been deleted from the database.", Toast.LENGTH_SHORT).show();
     }
 
     @Override

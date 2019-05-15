@@ -87,6 +87,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             // This is a new pet, so change the app bar to say "Add a Pet".
             setTitle(getString(R.string.editor_activity_title_new_pet));
             editMode = false;
+
+            // It doesn't make sense to delete a pet so we can hide that option.
+            invalidateOptionsMenu();
         }
         else{
             // This is an existing pet, so change the app bar to say "Edit Pet".
@@ -350,5 +353,18 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         // Show dialog that there are unsaved changes
         showUnsavedChangesDialog(discardButtonClickListener);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu){
+        super.onPrepareOptionsMenu(menu);
+
+        // If this is a new pet, hide the "Delete" menu item.
+
+        if(!editMode){
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+        }
+        return true;
     }
 }
